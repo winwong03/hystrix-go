@@ -1,10 +1,12 @@
 package hystrix
 
 import (
-	"github.com/winwong03/hystrix-go/hystrix/metric_collector"
-	"github.com/winwong03/hystrix-go/hystrix/rolling"
+	"context"
 	"sync"
 	"time"
+
+	metricCollector "github.com/winwong03/hystrix-go/hystrix/metric_collector"
+	"github.com/winwong03/hystrix-go/hystrix/rolling"
 )
 
 type commandExecution struct {
@@ -22,7 +24,7 @@ type metricExchange struct {
 	metricCollectors []metricCollector.MetricCollector
 }
 
-func newMetricExchange(name string) *metricExchange {
+func newMetricExchange(ctx context.Context, name string) *metricExchange {
 	m := &metricExchange{}
 	m.Name = name
 
@@ -31,7 +33,7 @@ func newMetricExchange(name string) *metricExchange {
 	m.metricCollectors = metricCollector.Registry.InitializeMetricCollectors(name)
 	m.Reset()
 
-	go m.Monitor()
+	go m.Monitor(ctx)
 
 	return m
 }
@@ -48,20 +50,22 @@ func (m *metricExchange) DefaultCollector() *metricCollector.DefaultMetricCollec
 	return collection
 }
 
-func (m *metricExchange) Monitor() {
-	for update := range m.Updates {
-		// we only grab a read lock to make sure Reset() isn't changing the numbers.
-		m.Mutex.RLock()
-
-		totalDuration := time.Since(update.Start)
-		wg := &sync.WaitGroup{}
-		for _, collector := range m.metricCollectors {
-			wg.Add(1)
-			go m.IncrementMetrics(wg, collector, update, totalDuration)
+func (m *metricExchange) Monitor(ctx context.Context) {
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case update := <-m.Updates:
+			m.Mutex.RLock()
+			totalDuration := time.Since(update.Start)
+			wg := &sync.WaitGroup{}
+			for _, collector := range m.metricCollectors {
+				wg.Add(1)
+				go m.IncrementMetrics(wg, collector, update, totalDuration)
+			}
+			wg.Wait()
+			m.Mutex.RUnlock()
 		}
-		wg.Wait()
-
-		m.Mutex.RUnlock()
 	}
 }
 
