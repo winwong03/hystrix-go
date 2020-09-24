@@ -176,6 +176,7 @@ func GoC(ctx context.Context, name string, run runFuncC, fallback fallbackFuncC)
 
 		select {
 		case <-cmd.finished:
+			close(cmd.errChan)
 			// returnOnce has been executed in another goroutine
 		case <-ctx.Done():
 			returnOnce.Do(func() {
