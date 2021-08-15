@@ -11,7 +11,7 @@ type executorPool struct {
 	Tickets chan *struct{}
 }
 
-func newExecutorPool(ctx context.Context,name string) *executorPool {
+func newExecutorPool(ctx context.Context, name string) *executorPool {
 	p := &executorPool{}
 	p.Name = name
 	p.Metrics = newPoolMetrics(ctx, name)

@@ -2,6 +2,7 @@ package hystrix
 
 import (
 	"context"
+	"fmt"
 	"sync"
 
 	"github.com/afex/hystrix-go/hystrix/rolling"
@@ -45,6 +46,7 @@ func (m *poolMetrics) Monitor(ctx context.Context) {
 	for {
 		select {
 		case <-ctx.Done():
+			fmt.Println("No longer waiting in (m *poolMetrics) Monitor(ctx context.Context)")
 			return
 		case update, ok := <-m.Updates:
 			if !ok {

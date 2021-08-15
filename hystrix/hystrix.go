@@ -71,6 +71,7 @@ func Go(name string, run runFunc, fallback fallbackFunc) chan error {
 //
 // Define a fallback function if you want to define some code to execute during outages.
 func GoC(ctx context.Context, name string, run runFuncC, fallback fallbackFuncC) chan error {
+	// TODO context is cancelled
 	cmd := &command{
 		run:      run,
 		fallback: fallback,
@@ -114,6 +115,7 @@ func GoC(ctx context.Context, name string, run runFuncC, fallback fallbackFuncC)
 	}
 
 	go func() {
+		fmt.Println("go func created")
 		defer func() { cmd.finished <- true }()
 
 		// Circuits get opened when recent executions have shown to have a high error rate.
@@ -130,6 +132,7 @@ func GoC(ctx context.Context, name string, run runFuncC, fallback fallbackFuncC)
 				cmd.errorWithFallback(ctx, ErrCircuitOpen)
 				reportAllEvent()
 			})
+			fmt.Println("go func deleted")
 			return
 		}
 
@@ -153,6 +156,8 @@ func GoC(ctx context.Context, name string, run runFuncC, fallback fallbackFuncC)
 				cmd.errorWithFallback(ctx, ErrMaxConcurrency)
 				reportAllEvent()
 			})
+			fmt.Println("go func deleted")
+
 			return
 		}
 
@@ -164,13 +169,16 @@ func GoC(ctx context.Context, name string, run runFuncC, fallback fallbackFuncC)
 			returnTicket()
 			if runErr != nil {
 				cmd.errorWithFallback(ctx, runErr)
+				fmt.Println("go func deleted")
 				return
 			}
 			cmd.reportEvent("success")
 		})
+		fmt.Println("go func deleted")
 	}()
 
 	go func() {
+		fmt.Println("go func 2 created")
 		timer := time.NewTimer(getSettings(name).Timeout)
 		defer timer.Stop()
 
@@ -184,6 +192,8 @@ func GoC(ctx context.Context, name string, run runFuncC, fallback fallbackFuncC)
 				cmd.errorWithFallback(ctx, ctx.Err())
 				reportAllEvent()
 			})
+			fmt.Println("go func 2 deleted")
+
 			return
 		case <-timer.C:
 			returnOnce.Do(func() {
@@ -191,9 +201,12 @@ func GoC(ctx context.Context, name string, run runFuncC, fallback fallbackFuncC)
 				cmd.errorWithFallback(ctx, ErrTimeout)
 				reportAllEvent()
 			})
+			fmt.Println("go func 2 deleted")
+
 			return
 		}
 	}()
+	fmt.Println("go func 2 deleted")
 
 	return cmd.errChan
 }

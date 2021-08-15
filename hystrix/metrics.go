@@ -2,6 +2,7 @@ package hystrix
 
 import (
 	"context"
+	"fmt"
 	"sync"
 	"time"
 
@@ -54,6 +55,7 @@ func (m *metricExchange) Monitor(ctx context.Context) {
 	for {
 		select {
 		case <-ctx.Done():
+			fmt.Println("No longer waiting in func (m *metricExchange) Monitor(ctx context.Context) {")
 			return
 		case update, ok := <-m.Updates:
 			if !ok {
