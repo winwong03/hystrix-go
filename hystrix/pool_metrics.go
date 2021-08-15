@@ -51,10 +51,8 @@ func (m *poolMetrics) Monitor(ctx context.Context) {
 				return
 			}
 			m.Mutex.RLock()
-
 			m.Executed.Increment(1)
 			m.MaxActiveRequests.UpdateMax(float64(update.activeCount))
-
 			m.Mutex.RUnlock()
 		}
 	}

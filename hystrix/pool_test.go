@@ -27,7 +27,6 @@ func TestReturn(t *testing.T) {
 func TestActiveCount(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.TODO())
 	defer cancel()
-	defer Flush()
 
 	Convey("when 3 tickets are pulled", t, func() {
 		pool := newExecutorPool(ctx, "pool")
