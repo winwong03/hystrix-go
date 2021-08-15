@@ -8,7 +8,6 @@ import (
 )
 
 func TestMax(t *testing.T) {
-
 	Convey("when adding values to a rolling number", t, func() {
 		n := NewNumber()
 		for _, x := range []float64{10, 11, 9} {

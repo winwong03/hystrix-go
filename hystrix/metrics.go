@@ -38,7 +38,7 @@ func newMetricExchange(ctx context.Context, name string) *metricExchange {
 	return m
 }
 
-// The Default Collector function will panic if collectors are not setup to specification.
+// DefaultCollector will panic if collectors are not setup to specification.
 func (m *metricExchange) DefaultCollector() *metricCollector.DefaultMetricCollector {
 	if len(m.metricCollectors) < 1 {
 		panic("No Metric Collectors Registered.")
@@ -55,7 +55,11 @@ func (m *metricExchange) Monitor(ctx context.Context) {
 		select {
 		case <-ctx.Done():
 			return
-		case update := <-m.Updates:
+		case update, ok := <-m.Updates:
+			if !ok {
+				return
+			}
+			// we only grab a read lock to make sure Reset() isn't changing the numbers.
 			m.Mutex.RLock()
 			totalDuration := time.Since(update.Start)
 			wg := &sync.WaitGroup{}

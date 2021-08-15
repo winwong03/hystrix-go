@@ -7,6 +7,7 @@ require (
 	github.com/cactus/go-statsd-client/v5 v5.0.0
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475
 	github.com/smartystreets/goconvey v1.7.2
+	go.uber.org/goleak v1.1.12
 	go.uber.org/zap v1.21.0
 )
 
