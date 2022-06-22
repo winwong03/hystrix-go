@@ -4,7 +4,8 @@ package main
 
 import (
 	"flag"
-	metricCollector "github.com/hystrix-go/hystrix/metric_collector"
+	"github.com/winwong03/hystrix-go/hystrix"
+	metricCollector "github.com/winwong03/hystrix-go/hystrix/metric_collector"
 	"log"
 	"math/rand"
 	"net/http"
@@ -12,8 +13,7 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/cactus/go-statsd-client/statsd"
-	"github.com/winwong03/hystrix-go/hystrix/metric_collector"
+	"github.com/cactus/go-statsd-client/v5/statsd"
 	"github.com/winwong03/hystrix-go/plugins"
 )
 

@@ -1,11 +1,12 @@
 package plugins
 
 import (
+	"github.com/winwong03/hystrix-go/hystrix/metric_collector"
 	"log"
 	"strings"
 	"time"
 
-	"github.com/winwong03/hystrix-go/hystrix/metric_collector"
+	"github.com/cactus/go-statsd-client/v5/statsd"
 )
 
 // StatsdCollector fulfills the metricCollector interface allowing users to ship circuit

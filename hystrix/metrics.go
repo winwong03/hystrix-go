@@ -1,10 +1,10 @@
 package hystrix
 
 import (
+	"github.com/winwong03/hystrix-go/hystrix/metric_collector"
+	"github.com/winwong03/hystrix-go/hystrix/rolling"
 	"sync"
 	"time"
-
-	"github.com/winwong03/hystrix-go/hystrix/rolling"
 )
 
 type commandExecution struct {

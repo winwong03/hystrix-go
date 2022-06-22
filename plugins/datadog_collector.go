@@ -4,7 +4,7 @@ import (
 
 	// Developed on https://github.com/DataDog/datadog-go/tree/a27810dd518c69be741a7fd5d0e39f674f615be8
 	"github.com/DataDog/datadog-go/statsd"
-	metricCollector "github.com/hystrix-go/hystrix/metric_collector"
+	metricCollector "github.com/winwong03/hystrix-go/hystrix/metric_collector"
 )
 
 // These metrics are constants because we're leveraging the Datadog tagging
