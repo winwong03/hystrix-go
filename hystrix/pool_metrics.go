@@ -4,7 +4,7 @@ import (
 	"context"
 	"sync"
 
-	"github.com/winwong03/hystrix-go/hystrix/rolling"
+	"github.com/afex/hystrix-go/hystrix/rolling"
 )
 
 type poolMetrics struct {

@@ -7,8 +7,8 @@ import (
 	"strings"
 	"time"
 
+	metricCollector "github.com/afex/hystrix-go/hystrix/metric_collector"
 	metrics "github.com/rcrowley/go-metrics"
-	metricCollector "github.com/winwong03/hystrix-go/hystrix/metric_collector"
 )
 
 var makeTimerFunc = func() interface{} { return metrics.NewTimer() }

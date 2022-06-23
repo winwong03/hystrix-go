@@ -1,4 +1,4 @@
-module github.com/winwong03/hystrix-go
+module github.com/afex/hystrix-go
 
 go 1.17
 

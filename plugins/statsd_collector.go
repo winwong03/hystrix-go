@@ -1,7 +1,7 @@
 package plugins
 
 import (
-	"github.com/winwong03/hystrix-go/hystrix/metric_collector"
+	metricCollector "github.com/afex/hystrix-go/hystrix/metric_collector"
 	"log"
 	"strings"
 	"time"

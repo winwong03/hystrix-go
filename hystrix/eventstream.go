@@ -3,7 +3,7 @@ package hystrix
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/winwong03/hystrix-go/hystrix/rolling"
+	"github.com/afex/hystrix-go/hystrix/rolling"
 	"net/http"
 	"sync"
 	"time"
