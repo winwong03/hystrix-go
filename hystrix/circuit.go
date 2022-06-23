@@ -6,6 +6,8 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"go.uber.org/zap"
 )
 
 // CircuitBreaker is created for each ExecutorPool to track whether requests
@@ -35,16 +37,27 @@ func init() {
 
 // GetCircuit returns the circuit for the given command and whether this call created it.
 func GetCircuit(name string) (*CircuitBreaker, bool, error) {
+	logger, err := zap.NewProduction()
+	if err != nil {
+		return nil, false, err
+	}
+	sugar := logger.Sugar()
+
+	sugar.Info("attempting to grab circuit breaker read lock")
 	fmt.Println("attempting to grab circuit breaker read lock")
 	circuitBreakersMutex.RLock()
 	fmt.Println("successfully grabbed circuit breaker read lock")
+	sugar.Info("successfully grabbed circuit breaker read lock")
 	_, ok := circuitBreakers[name]
 	if !ok {
 		fmt.Printf("circuit breaker %s does not exist\n", name)
+		sugar.Info("circuit breaker does not exist\n", "name", name)
 		circuitBreakersMutex.RUnlock()
 		fmt.Println("released read lock, attempting to grab circuit breaker write lock")
+		sugar.Info("released read lock, attempting to grab circuit breaker write lock")
 		circuitBreakersMutex.Lock()
 		fmt.Println("successfully grabbed circuit breaker write lock")
+		sugar.Info("successfully grabbed circuit breaker write lock")
 		defer circuitBreakersMutex.Unlock()
 		// because we released the rlock before we obtained the exclusive lock,
 		// we need to double check that some other thread didn't beat us to
@@ -54,8 +67,10 @@ func GetCircuit(name string) (*CircuitBreaker, bool, error) {
 		}
 		circuitBreakers[name] = newCircuitBreaker(name)
 		fmt.Printf("circuit breaker %s was created\n", name)
+		sugar.Info("circuit breaker was created", "name", name)
 	} else {
 		fmt.Println("released read lock")
+		sugar.Info("released read lock")
 		defer circuitBreakersMutex.RUnlock()
 	}
 
