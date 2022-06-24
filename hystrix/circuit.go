@@ -37,12 +37,13 @@ func init() {
 
 // GetCircuit returns the circuit for the given command and whether this call created it.
 func GetCircuit(name string) (*CircuitBreaker, bool, error) {
+	fmt.Println("calling GetCircuit")
 	logger, err := zap.NewProduction()
+	defer logger.Sync()
 	if err != nil {
 		return nil, false, err
 	}
 	sugar := logger.Sugar()
-
 	sugar.Info("attempting to grab circuit breaker read lock")
 	fmt.Println("attempting to grab circuit breaker read lock")
 	circuitBreakersMutex.RLock()
