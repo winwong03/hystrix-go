@@ -115,8 +115,9 @@ func GoC(ctx context.Context, name string, run runFuncC, fallback fallbackFuncC)
 	}
 
 	go func() {
-		fmt.Println("go func created")
-		defer func() { cmd.finished <- true }()
+		defer func() {
+			cmd.finished <- true
+		}()
 
 		// Circuits get opened when recent executions have shown to have a high error rate.
 		// Rejecting new executions allows backends to recover, and the circuit will allow
@@ -132,7 +133,7 @@ func GoC(ctx context.Context, name string, run runFuncC, fallback fallbackFuncC)
 				cmd.errorWithFallback(ctx, ErrCircuitOpen)
 				reportAllEvent()
 			})
-			fmt.Println("go func deleted")
+			fmt.Println("goC finished")
 			return
 		}
 
@@ -156,8 +157,7 @@ func GoC(ctx context.Context, name string, run runFuncC, fallback fallbackFuncC)
 				cmd.errorWithFallback(ctx, ErrMaxConcurrency)
 				reportAllEvent()
 			})
-			fmt.Println("go func deleted")
-
+			fmt.Println("goC finished with ErrMaxConcurrency")
 			return
 		}
 
@@ -169,16 +169,14 @@ func GoC(ctx context.Context, name string, run runFuncC, fallback fallbackFuncC)
 			returnTicket()
 			if runErr != nil {
 				cmd.errorWithFallback(ctx, runErr)
-				fmt.Println("go func deleted")
+				fmt.Println("goC returned error with callback")
 				return
 			}
 			cmd.reportEvent("success")
 		})
-		fmt.Println("go func deleted")
 	}()
 
 	go func() {
-		fmt.Println("go func 2 created")
 		timer := time.NewTimer(getSettings(name).Timeout)
 		defer timer.Stop()
 
@@ -192,8 +190,7 @@ func GoC(ctx context.Context, name string, run runFuncC, fallback fallbackFuncC)
 				cmd.errorWithFallback(ctx, ctx.Err())
 				reportAllEvent()
 			})
-			fmt.Println("go func 2 deleted")
-
+			fmt.Println("goC returned due to context done")
 			return
 		case <-timer.C:
 			returnOnce.Do(func() {
@@ -201,13 +198,11 @@ func GoC(ctx context.Context, name string, run runFuncC, fallback fallbackFuncC)
 				cmd.errorWithFallback(ctx, ErrTimeout)
 				reportAllEvent()
 			})
-			fmt.Println("go func 2 deleted")
-
+			fmt.Println("goC returned due to timeout")
 			return
 		}
 	}()
-	fmt.Println("go func 2 deleted")
-
+	fmt.Println("goC finished")
 	return cmd.errChan
 }
 

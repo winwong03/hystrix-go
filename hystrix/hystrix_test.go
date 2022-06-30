@@ -129,13 +129,27 @@ func TestTimeoutEmptyFallback(t *testing.T) {
 
 func TestMaxConcurrent(t *testing.T) {
 	Convey("if a command has max concurrency set to 2", t, func() {
-		defer Flush()
+
 		ConfigureCommand("", CommandConfig{MaxConcurrentRequests: 2})
 		resultChan := make(chan int)
+		// for go-leak: clean up channel
+		cleanup := func() {
+			time.Sleep(10 * time.Millisecond)
+			close(resultChan)
+			Flush()
+		}
+		defer cleanup()
+		numRun := 3
+		numRunSoFar := 0
 
 		run := func(ctx context.Context) error {
 			time.Sleep(1 * time.Second)
-			resultChan <- 1
+			fmt.Println("send 1 to resultChan")
+			// for go-leak: don't send when err expected
+			if numRun <= 2 {
+				resultChan <- 1
+			}
+			numRunSoFar++
 			return nil
 		}
 		ctx, cancel := context.WithCancel(context.Background())
@@ -144,7 +158,7 @@ func TestMaxConcurrent(t *testing.T) {
 		Convey("and 3 of those commands try to execute at the same time", func() {
 			var good, bad int
 
-			for i := 0; i < 3; i++ {
+			for i := 0; i < numRun; i++ {
 				errChan := GoC(ctx, "", run, nil)
 				time.Sleep(10 * time.Millisecond)
 
