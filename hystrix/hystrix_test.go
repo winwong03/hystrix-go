@@ -70,16 +70,28 @@ func TestFallback(t *testing.T) {
 
 func TestTimeout(t *testing.T) {
 	Convey("with a command which times out, and whose fallback sends to a channel", t, func() {
-		defer Flush()
 		ConfigureCommand("", CommandConfig{Timeout: 100})
-
 		resultChan := make(chan int)
+
+		cleanup := func() {
+			close(resultChan)
+			Flush()
+		}
+		defer cleanup()
+
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 
 		errChan := GoC(ctx, "", func(ctx context.Context) error {
+			// force a timeout
 			time.Sleep(1 * time.Second)
-			resultChan <- 1
+			select {
+			case <-ctx.Done():
+				// do nothing
+			default:
+				// for go-leak: only send if context is not done
+				resultChan <- 1
+			}
 			return nil
 		}, func(ctx context.Context, err error) error {
 			if err == ErrTimeout {
@@ -99,16 +111,27 @@ func TestTimeout(t *testing.T) {
 
 func TestTimeoutEmptyFallback(t *testing.T) {
 	Convey("with a command which times out, and has no fallback", t, func() {
-		defer Flush()
 		ConfigureCommand("", CommandConfig{Timeout: 100})
 
 		resultChan := make(chan int)
+		cleanup := func() {
+			close(resultChan)
+			Flush()
+		}
+		defer cleanup()
+
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 
 		errChan := GoC(ctx, "", func(ctx context.Context) error {
 			time.Sleep(1 * time.Second)
-			resultChan <- 1
+			select {
+			case <-ctx.Done():
+				// do nothing
+			default:
+				// for go-leak: only send if context is not done
+				resultChan <- 1
+			}
 			return nil
 		}, nil)
 
@@ -144,7 +167,6 @@ func TestMaxConcurrent(t *testing.T) {
 
 		run := func(ctx context.Context) error {
 			time.Sleep(1 * time.Second)
-			fmt.Println("send 1 to resultChan")
 			// for go-leak: don't send when err expected
 			if numRun <= 2 {
 				resultChan <- 1

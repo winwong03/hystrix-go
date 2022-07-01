@@ -71,7 +71,6 @@ func Go(name string, run runFunc, fallback fallbackFunc) chan error {
 //
 // Define a fallback function if you want to define some code to execute during outages.
 func GoC(ctx context.Context, name string, run runFuncC, fallback fallbackFuncC) chan error {
-	// TODO context is cancelled
 	cmd := &command{
 		run:      run,
 		fallback: fallback,
@@ -133,7 +132,7 @@ func GoC(ctx context.Context, name string, run runFuncC, fallback fallbackFuncC)
 				cmd.errorWithFallback(ctx, ErrCircuitOpen)
 				reportAllEvent()
 			})
-			fmt.Println("goC finished")
+			fmt.Println("goC finished running fallback from ErrCircuitOpen")
 			return
 		}
 
@@ -157,7 +156,7 @@ func GoC(ctx context.Context, name string, run runFuncC, fallback fallbackFuncC)
 				cmd.errorWithFallback(ctx, ErrMaxConcurrency)
 				reportAllEvent()
 			})
-			fmt.Println("goC finished with ErrMaxConcurrency")
+			fmt.Println("goC finished running fallback with ErrMaxConcurrency")
 			return
 		}
 
@@ -169,7 +168,7 @@ func GoC(ctx context.Context, name string, run runFuncC, fallback fallbackFuncC)
 			returnTicket()
 			if runErr != nil {
 				cmd.errorWithFallback(ctx, runErr)
-				fmt.Println("goC returned error with callback")
+				fmt.Println("goC returned error with fallback")
 				return
 			}
 			cmd.reportEvent("success")
@@ -202,7 +201,8 @@ func GoC(ctx context.Context, name string, run runFuncC, fallback fallbackFuncC)
 			return
 		}
 	}()
-	fmt.Println("goC finished")
+
+	fmt.Println("goC finished, returning errChan")
 	return cmd.errChan
 }
 
