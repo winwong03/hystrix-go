@@ -207,6 +207,7 @@ func (circuit *CircuitBreaker) ReportEvent(eventTypes []string, start time.Time,
 	if circuit.executorPool.Max > 0 {
 		concurrencyInUse = float64(circuit.executorPool.ActiveCount()) / float64(circuit.executorPool.Max)
 	}
+	fmt.Println("concurrency in use:", concurrencyInUse)
 
 	select {
 	case circuit.metrics.Updates <- &commandExecution{
