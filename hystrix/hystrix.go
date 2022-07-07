@@ -84,7 +84,8 @@ func GoC(ctx context.Context, name string, run runFuncC, fallback fallbackFuncC)
 	// explicit error return to give place for us to kill switch the operation (fallback)
 
 	circuit, _, err := GetCircuit(name)
-	log.Printf("concurrency of GoC:", circuit.executorPool.ActiveCount())
+	log.Printf("max concurrency: %d\n", circuit.executorPool.Max)
+	log.Printf("threads in use:%d\n", circuit.executorPool.ActiveCount())
 	if err != nil {
 		cmd.errChan <- err
 		return cmd.errChan
@@ -157,7 +158,7 @@ func GoC(ctx context.Context, name string, run runFuncC, fallback fallbackFuncC)
 				cmd.errorWithFallback(ctx, ErrMaxConcurrency)
 				reportAllEvent()
 			})
-			fmt.Println("goC finished running fallback with ErrMaxConcurrency")
+			fmt.Println("goC finished running fallback with ErrMaxConcurrency: %d", circuit.executorPool.ActiveCount())
 			return
 		}
 
