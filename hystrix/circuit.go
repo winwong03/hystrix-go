@@ -34,27 +34,15 @@ func init() {
 
 // GetCircuit returns the circuit for the given command and whether this call created it.
 func GetCircuit(name string) (*CircuitBreaker, bool, error) {
-	fmt.Println("calling GetCircuit")
-	log.Printf("calling GetCircuit\n")
-
-	log.Printf("attempting to grab circuit breadker read lock\n")
-	fmt.Println("attempting to grab circuit breaker read lock")
 	circuitBreakersMutex.RLock()
-	fmt.Println("successfully grabbed circuit breaker read lock")
-	log.Printf("successfully grabbed circuit breaker read lock\n")
 
 	_, ok := circuitBreakers[name]
 	if !ok {
-		fmt.Printf("circuit breaker %s does not exist\n", name)
-		log.Printf("circuit breaker %s does not exist\n", name)
 		circuitBreakersMutex.RUnlock()
-		log.Printf("released read lock, attempting to grab circuit breaker write lock\n")
-		fmt.Println("released read lock, attempting to grab circuit breaker write lock")
-		circuitBreakersMutex.Lock()
-		fmt.Println("successfully grabbed circuit breaker write lock")
-		log.Printf("successfully grabbed circuit breaker write lock\n")
 
+		circuitBreakersMutex.Lock()
 		defer circuitBreakersMutex.Unlock()
+
 		// because we released the rlock before we obtained the exclusive lock,
 		// we need to double check that some other thread didn't beat us to
 		// creation.
@@ -62,11 +50,7 @@ func GetCircuit(name string) (*CircuitBreaker, bool, error) {
 			return cb, false, nil
 		}
 		circuitBreakers[name] = newCircuitBreaker(name)
-		fmt.Printf("circuit breaker %s was created\n", name)
-		log.Printf("circuit breaker %s was created\n", name)
 	} else {
-		fmt.Println("released read lock")
-		log.Printf("released read lock\n")
 		defer circuitBreakersMutex.RUnlock()
 	}
 
@@ -203,10 +187,6 @@ func (circuit *CircuitBreaker) ReportEvent(eventTypes []string, start time.Time,
 	if circuit.executorPool.Max > 0 {
 		concurrencyInUse = float64(circuit.executorPool.ActiveCount()) / float64(circuit.executorPool.Max)
 	}
-	log.Printf("max concurrency: %d\n", circuit.executorPool.Max)
-	log.Printf("threads in use:%d\n", circuit.executorPool.ActiveCount())
-	fmt.Println("concurrency in use:", concurrencyInUse)
-	log.Printf("concurrency in use: %d\n", concurrencyInUse)
 
 	select {
 	case circuit.metrics.Updates <- &commandExecution{

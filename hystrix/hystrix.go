@@ -134,7 +134,6 @@ func GoC(ctx context.Context, name string, run runFuncC, fallback fallbackFuncC)
 				cmd.errorWithFallback(ctx, ErrCircuitOpen)
 				reportAllEvent()
 			})
-			fmt.Println("goC finished running fallback from ErrCircuitOpen")
 			return
 		}
 
@@ -158,7 +157,6 @@ func GoC(ctx context.Context, name string, run runFuncC, fallback fallbackFuncC)
 				cmd.errorWithFallback(ctx, ErrMaxConcurrency)
 				reportAllEvent()
 			})
-			fmt.Println("goC finished running fallback with ErrMaxConcurrency: %d", circuit.executorPool.ActiveCount())
 			return
 		}
 
@@ -170,7 +168,6 @@ func GoC(ctx context.Context, name string, run runFuncC, fallback fallbackFuncC)
 			returnTicket()
 			if runErr != nil {
 				cmd.errorWithFallback(ctx, runErr)
-				fmt.Println("goC returned error with fallback")
 				return
 			}
 			cmd.reportEvent("success")
@@ -191,7 +188,6 @@ func GoC(ctx context.Context, name string, run runFuncC, fallback fallbackFuncC)
 				cmd.errorWithFallback(ctx, ctx.Err())
 				reportAllEvent()
 			})
-			fmt.Println("goC returned due to context done")
 			return
 		case <-timer.C:
 			returnOnce.Do(func() {
@@ -199,12 +195,10 @@ func GoC(ctx context.Context, name string, run runFuncC, fallback fallbackFuncC)
 				cmd.errorWithFallback(ctx, ErrTimeout)
 				reportAllEvent()
 			})
-			fmt.Println("goC returned due to timeout")
 			return
 		}
 	}()
 
-	fmt.Println("goC finished, returning errChan")
 	return cmd.errChan
 }
 
